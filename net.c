@@ -1,19 +1,20 @@
-#include <stdio.h>
+#include "net.h"
+
+#include <pthread.h>
+#include <signal.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <signal.h>
 
-#include "util.h"
-#include "net.h"
 #include "ip.h"
+#include "util.h"
 
 struct net_protocol {
     struct net_protocol *next;
     uint16_t type;
-    pthread_mutex_t mutex; /* mutex for input queue */
+    pthread_mutex_t mutex;   /* mutex for input queue */
     struct queue_head queue; /* input queue */
     void (*handler)(const uint8_t *data, size_t len, struct net_device *dev);
 };
@@ -29,7 +30,8 @@ static struct net_device *devices;
 static struct net_protocol *protocols;
 
 struct net_device *
-net_device_alloc(void) {
+net_device_alloc(void)
+{
     struct net_device *dev;
     dev = calloc(1, sizeof(*dev));
     if (!dev) {
@@ -41,7 +43,8 @@ net_device_alloc(void) {
 
 /* NOTE: must not be call after net_run() */
 int
-net_device_register(struct net_device *dev) {
+net_device_register(struct net_device *dev)
+{
     static unsigned int index = 0;
 
     dev->index = index++;
@@ -53,7 +56,8 @@ net_device_register(struct net_device *dev) {
 }
 
 static int
-net_device_open(struct net_device *dev) {
+net_device_open(struct net_device *dev)
+{
     if (NET_DEVICE_IS_UP(dev)) {
         errorf("already opened, dev=%s", dev->name);
         return -1;
@@ -70,7 +74,8 @@ net_device_open(struct net_device *dev) {
 }
 
 static int
-net_device_close(struct net_device *dev) {
+net_device_close(struct net_device *dev)
+{
     if (!NET_DEVICE_IS_UP(dev)) {
         errorf("not opened, dev=%s", dev->name);
         return -1;
@@ -90,17 +95,16 @@ net_device_close(struct net_device *dev) {
 int
 net_device_add_iface(struct net_device *dev, struct net_iface *iface)
 {
-
 }
 
 struct net_iface *
 net_device_get_iface(struct net_device *dev, int family)
 {
-
 }
 
 int
-net_device_output(struct net_device *dev, uint16_t type, const uint8_t *data, size_t len, const void *dst) {
+net_device_output(struct net_device *dev, uint16_t type, const uint8_t *data, size_t len, const void *dst)
+{
     if (!NET_DEVICE_IS_UP(dev)) {
         errorf("not opened, dev=%s", dev->name);
         return -1;
@@ -134,7 +138,7 @@ net_input_handler(uint16_t type, const uint8_t *data, size_t len, struct net_dev
             }
             entry->dev = dev;
             entry->len = len;
-            memcpy(entry+1, data, len);
+            memcpy(entry + 1, data, len);
             pthread_mutex_lock(&proto->mutex);
             if (!queue_push(&proto->queue, entry)) {
                 pthread_mutex_unlock(&proto->mutex);
@@ -158,7 +162,7 @@ int
 net_protocol_register(uint16_t type, void (*handler)(const uint8_t *data, size_t len, struct net_device *dev))
 {
     struct net_protocol *proto;
-    for (proto = protocols;  proto; proto = proto->next) {
+    for (proto = protocols; proto; proto = proto->next) {
         if (type == proto->type) {
             errorf("already registered, type=0x%04x", type);
             return -1;
@@ -194,7 +198,7 @@ net_thread(void *arg)
 
     while (!terminate) {
         count = 0;
-        for (dev = devices; dev ; dev = dev->next) {
+        for (dev = devices; dev; dev = dev->next) {
             if (NET_DEVICE_IS_UP(dev)) {
                 if (dev->ops->poll) {
                     if (dev->ops->poll(dev) != -1) {
@@ -203,15 +207,15 @@ net_thread(void *arg)
                 }
             }
         }
-        for (proto = protocols; proto ; proto = proto->next) {
+        for (proto = protocols; proto; proto = proto->next) {
             pthread_mutex_lock(&proto->mutex);
             entry = (struct net_protocol_queue_entry *)queue_pop(&proto->queue);
             num = proto->queue.num;
             pthread_mutex_unlock(&proto->mutex);
             if (entry) {
                 debugf("queue popped (num: %u), dev=%s, type=0x%04x, len=%zd", num, entry->dev->name, proto->type, entry->len);
-                debugdump((uint8_t *)(entry+1), entry->len);
-                proto->handler((uint8_t *)(entry+1), entry->len, entry->dev);
+                debugdump((uint8_t *)(entry + 1), entry->len);
+                proto->handler((uint8_t *)(entry + 1), entry->len, entry->dev);
                 free(entry);
                 count++;
             }
@@ -224,7 +228,8 @@ net_thread(void *arg)
 }
 
 int
-net_run(void) {
+net_run(void)
+{
     struct net_device *dev;
     int err;
 
@@ -243,7 +248,8 @@ net_run(void) {
 }
 
 void
-net_shutdown(void) {
+net_shutdown(void)
+{
     struct net_device *dev;
     int err;
 

@@ -1,8 +1,8 @@
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
-#include "util.h"
 #include "net.h"
+#include "util.h"
 
 #define NULL_MTU UINT16_MAX /* maximum size of IP datagram */
 

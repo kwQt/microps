@@ -1,8 +1,8 @@
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
-#include "util.h"
 #include "net.h"
+#include "util.h"
 
 #define LOOPBACK_MTU UINT16_MAX /* maximum size of IP datagram */
 
@@ -15,7 +15,7 @@ loopback_transmit(struct net_device *dev, uint16_t type, const uint8_t *data, si
 }
 
 static struct net_device_ops loopback_ops = {
-        .transmit = loopback_transmit,
+    .transmit = loopback_transmit,
 };
 
 struct net_device *
