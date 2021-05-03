@@ -1,0 +1,8 @@
+BasedOnStyle: Google
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterFunction: true
+    AfterControlStatement: false
+IndentWidth: 4
+AlwaysBreakAfterReturnType: All
+ColumnLimit: 0
