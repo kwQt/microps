@@ -12,6 +12,7 @@
 #include "arp.h"
 #include "icmp.h"
 #include "ip.h"
+#include "tcp.h"
 #include "udp.h"
 #include "util.h"
 
@@ -423,6 +424,10 @@ net_init(void)
     }
     if (udp_init() == -1) {
         errorf("udp_init() failure");
+        return -1;
+    }
+    if (tcp_init() == -1) {
+        errorf("tcp_init() failure");
         return -1;
     }
     return 0;
